@@ -1,30 +1,46 @@
-import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, Platform } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import TabNavigator from './src/router/TabNavigator';
 import { initializeStorage } from './src/storage/movieStorage';
-import HomeScreen from './src/screens/HomeScreen';
-import SearchScreen from './src/screens/SearchScreen';
-import FavoritesScreen from './src/screens/FavoritesScreen';
 
 export default function App() {
-
-
   useEffect(() => {
-  initializeStorage();
-}, []);
-
+    const init = async () => {
+      try {
+        await initializeStorage();
+        console.log('✅ App inicializado com sucesso');
+      } catch (error) {
+        console.error('❌ Erro na inicialização:', error);
+      }
+    };
+    
+    init();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <HomeScreen />
-    </View>
+    <SafeAreaProvider>
+      <StatusBar 
+        barStyle={Platform.OS === 'ios' ? 'light-content' : 'light-content'}
+        backgroundColor="#1a1a1a"
+        translucent={false}
+      />
+      <NavigationContainer
+        theme={{
+          dark: true,
+          colors: {
+            primary: '#E50914',
+            background: '#1a1a1a',
+            card: '#2a2a2a',
+            text: '#ffffff',
+            border: '#444444',
+            notification: '#E50914',
+          },
+        }}
+      >
+        <TabNavigator />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

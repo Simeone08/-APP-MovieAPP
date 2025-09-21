@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { View, Text, Image, Pressable, StyleSheet, ActivityIndicator, Dimensions } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from "react-native";
 import { saveMovieStatus, getMovieStatus } from "../storage/movieStorage";
 import { getImageUrl } from "../api/tmdb";
 
@@ -53,7 +53,7 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
   const placeholderUrl = 'https://via.placeholder.com/500x750/2a2a2a/666666?text=🎬';
 
   return (
-    <Pressable style={styles.cardContainer}>
+    <TouchableOpacity style={styles.cardContainer} activeOpacity={0.9}>
       {/* Card Background with Gradient */}
       <View style={styles.card}>
         
@@ -117,7 +117,7 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
           
           {/* Action Buttons */}
           <View style={styles.buttonsContainer}>
-            <Pressable
+            <TouchableOpacity
               style={[
                 styles.actionButton,
                 styles.watchedButton,
@@ -126,10 +126,7 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
               ]}
               onPress={() => handleSave("watched")}
               disabled={saving}
-              android_ripple={{ 
-                color: 'rgba(255,255,255,0.1)', 
-                borderless: false 
-              }}
+              activeOpacity={0.8}
             >
               <View style={styles.buttonContent}>
                 <Text style={styles.buttonIcon}>
@@ -142,9 +139,9 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
                   Assisti
                 </Text>
               </View>
-            </Pressable>
+            </TouchableOpacity>
             
-            <Pressable
+            <TouchableOpacity
               style={[
                 styles.actionButton,
                 styles.wantToWatchButton,
@@ -153,10 +150,7 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
               ]}
               onPress={() => handleSave("wantToWatch")}
               disabled={saving}
-              android_ripple={{ 
-                color: 'rgba(255,255,255,0.1)', 
-                borderless: false 
-              }}
+              activeOpacity={0.8}
             >
               <View style={styles.buttonContent}>
                 <Text style={styles.buttonIcon}>
@@ -169,14 +163,14 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
                   Quero ver
                 </Text>
               </View>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </View>
         
         {/* Glass Effect Overlay */}
         <View style={styles.glassOverlay} />
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 });
 
@@ -360,16 +354,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 1,
   },
   
   buttonIcon: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#fff',
   },
   
   buttonText: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#cccccc',
     fontWeight: '600',
     textAlign: 'center',

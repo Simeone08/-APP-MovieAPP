@@ -1,6 +1,5 @@
-// components/LoadingSpinner.js
 import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 
 export const LoadingSpinner = ({ message = "Carregando...", size = "large", color = "#E50914" }) => (
   <View style={styles.loadingContainer}>
@@ -9,20 +8,18 @@ export const LoadingSpinner = ({ message = "Carregando...", size = "large", colo
   </View>
 );
 
-// components/ErrorMessage.js
 export const ErrorMessage = ({ message, onRetry, retryText = "Tentar novamente" }) => (
   <View style={styles.errorContainer}>
     <Text style={styles.errorEmoji}>😕</Text>
     <Text style={styles.errorText}>{message}</Text>
     {onRetry && (
-      <Pressable style={styles.retryButton} onPress={onRetry}>
+      <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.8}>
         <Text style={styles.retryButtonText}>{retryText}</Text>
-      </Pressable>
+      </TouchableOpacity>
     )}
   </View>
 );
 
-// components/EmptyState.js
 export const EmptyState = ({ 
   emoji = "🎬", 
   title = "Nenhum filme encontrado", 
@@ -35,29 +32,25 @@ export const EmptyState = ({
     <Text style={styles.emptyTitle}>{title}</Text>
     {subtitle && <Text style={styles.emptySubtitle}>{subtitle}</Text>}
     {actionText && onAction && (
-      <Pressable style={styles.emptyAction} onPress={onAction}>
+      <TouchableOpacity style={styles.emptyAction} onPress={onAction} activeOpacity={0.8}>
         <Text style={styles.emptyActionText}>{actionText}</Text>
-      </Pressable>
+      </TouchableOpacity>
     )}
   </View>
 );
 
-// components/NetworkStatus.js
-import { useNetworkStatus } from '../hooks/useFetch';
-
-export const NetworkStatus = () => {
-  const isOnline = useNetworkStatus();
-  
-  if (isOnline) return null;
+// NetworkStatus simplificado - sem hooks complexos
+export const NetworkStatus = ({ isOffline = false }) => {
+  if (!isOffline) return null;
   
   return (
     <View style={styles.networkBanner}>
-      <Text style={styles.networkText}>📡 Sem conexão com a internet</Text>
+      <Text style={styles.networkText}>📡 Verifique sua conexão</Text>
     </View>
   );
 };
 
-// components/RetryBanner.js
+// RetryBanner simplificado
 export const RetryBanner = ({ isRetrying, attempt, maxAttempts = 3 }) => {
   if (!isRetrying) return null;
   
@@ -65,9 +58,63 @@ export const RetryBanner = ({ isRetrying, attempt, maxAttempts = 3 }) => {
     <View style={styles.retryBanner}>
       <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
       <Text style={styles.retryText}>
-        Tentativa {attempt} de {maxAttempts}...
+        Tentando novamente...
       </Text>
     </View>
+  );
+};
+
+// Componente de status de conexão simples
+export const SimpleNetworkStatus = ({ 
+  children, 
+  showOfflineMessage = true,
+  offlineComponent = null 
+}) => {
+  // Por simplicidade, assume online. Em produção, você pode usar NetInfo
+  const [isOnline, setIsOnline] = React.useState(true);
+  
+  // Simulação simples de teste de conectividade
+  React.useEffect(() => {
+    const testConnection = async () => {
+      try {
+        const response = await fetch('https://httpbin.org/status/200', {
+          method: 'HEAD',
+          cache: 'no-cache',
+        });
+        setIsOnline(response.ok);
+      } catch {
+        setIsOnline(false);
+      }
+    };
+    
+    // Testa conectividade a cada 30 segundos
+    const interval = setInterval(testConnection, 30000);
+    testConnection(); // Teste inicial
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  if (!isOnline) {
+    if (offlineComponent) return offlineComponent;
+    if (showOfflineMessage) {
+      return (
+        <View style={styles.offlineContainer}>
+          <NetworkStatus isOffline={true} />
+          <EmptyState
+            emoji="📡"
+            title="Sem conexão"
+            subtitle="Verifique sua conexão com a internet e tente novamente"
+          />
+        </View>
+      );
+    }
+  }
+  
+  return (
+    <>
+      <NetworkStatus isOffline={!isOnline} />
+      {children}
+    </>
   );
 };
 
@@ -178,5 +225,11 @@ const styles = StyleSheet.create({
   retryText: {
     color: '#fff',
     fontSize: 14,
+  },
+
+  // Offline Container
+  offlineContainer: {
+    flex: 1,
+    backgroundColor: '#f8f8f8',
   },
 });
