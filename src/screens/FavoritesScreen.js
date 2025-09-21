@@ -6,7 +6,7 @@ import {
   StyleSheet, 
   RefreshControl,
   SafeAreaView,
-  Pressable,
+  TouchableOpacity,
   Dimensions 
 } from "react-native";
 import { getWatchedMovies, getWantToWatchMovies } from "../storage/movieStorage";
@@ -22,7 +22,7 @@ export default function FavoritesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('watched'); // 'watched' | 'wantToWatch'
 
-  // Função para carregar filmes
+  // Função para carregar filmes com validação
   const loadMovies = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) {
@@ -36,8 +36,27 @@ export default function FavoritesScreen() {
         getWantToWatchMovies()
       ]);
 
-      setWatched(watchedMovies);
-      setWantToWatch(wantMovies);
+      // Filtra filmes válidos para evitar erros
+      const validWatched = watchedMovies.filter(movie => 
+        movie && movie.id && movie.title
+      );
+      
+      const validWantToWatch = wantMovies.filter(movie => 
+        movie && movie.id && movie.title
+      );
+
+      setWatched(validWatched);
+      setWantToWatch(validWantToWatch);
+
+      // Log para debug
+      if (watchedMovies.length !== validWatched.length) {
+        console.warn(`FavoritesScreen: ${watchedMovies.length - validWatched.length} filmes inválidos removidos de 'assistidos'`);
+      }
+      
+      if (wantMovies.length !== validWantToWatch.length) {
+        console.warn(`FavoritesScreen: ${wantMovies.length - validWantToWatch.length} filmes inválidos removidos de 'quero assistir'`);
+      }
+
     } catch (error) {
       console.error('Erro ao carregar favoritos:', error);
     } finally {
@@ -108,19 +127,28 @@ export default function FavoritesScreen() {
     </View>
   ), [handleMovieStatusChange]);
 
-  // Renderizador de filme para grade
-  const renderMovieGrid = useCallback(({ item }) => (
-    <MovieCard 
-      movie={item} 
-      onStatusChange={handleMovieStatusChange}
-    />
-  ), [handleMovieStatusChange]);
+  // Renderizador de filme para grade com validação
+  const renderMovieGrid = useCallback(({ item }) => {
+    // Validação extra antes de renderizar
+    if (!item || !item.id || !item.title) {
+      console.warn('FavoritesScreen: Tentativa de renderizar filme inválido:', item);
+      return null;
+    }
+    
+    return (
+      <MovieCard 
+        movie={item} 
+        onStatusChange={handleMovieStatusChange}
+      />
+    );
+  }, [handleMovieStatusChange]);
 
   // Componente de abas
   const TabButton = ({ id, title, count, isActive, onPress }) => (
-    <Pressable
+    <TouchableOpacity
       style={[styles.tabButton, isActive && styles.tabButtonActive]}
       onPress={() => onPress(id)}
+      activeOpacity={0.7}
     >
       <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
         {title}
@@ -130,7 +158,7 @@ export default function FavoritesScreen() {
           {count}
         </Text>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 
   if (loading) {

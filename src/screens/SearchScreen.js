@@ -5,7 +5,7 @@ import {
   FlatList,
   Text,
   StyleSheet,
-  Pressable,
+  TouchableOpacity,
   Keyboard,
   SafeAreaView,
 } from "react-native";
@@ -97,12 +97,13 @@ export default function SearchScreen() {
 
   // Renderizador de busca recente
   const renderRecentSearch = useCallback(({ item }) => (
-    <Pressable 
+    <TouchableOpacity 
       style={styles.recentItem}
       onPress={() => useRecentSearch(item)}
+      activeOpacity={0.7}
     >
       <Text style={styles.recentText}>🔍 {item}</Text>
-    </Pressable>
+    </TouchableOpacity>
   ), [useRecentSearch]);
 
   return (
@@ -125,23 +126,25 @@ export default function SearchScreen() {
           />
           
           {query.length > 0 && (
-            <Pressable 
+            <TouchableOpacity 
               style={styles.clearButton}
               onPress={clearSearch}
+              activeOpacity={0.7}
             >
               <Text style={styles.clearButtonText}>✕</Text>
-            </Pressable>
+            </TouchableOpacity>
           )}
         </View>
 
         {/* Botão de busca manual */}
-        <Pressable 
+        <TouchableOpacity 
           style={[
             styles.searchButton, 
             query.trim().length < 2 && styles.searchButtonDisabled
           ]}
           onPress={handleManualSearch}
           disabled={query.trim().length < 2}
+          activeOpacity={0.8}
         >
           <Text style={[
             styles.searchButtonText,
@@ -149,7 +152,7 @@ export default function SearchScreen() {
           ]}>
             Buscar
           </Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       {/* Indicador de carregamento inline */}

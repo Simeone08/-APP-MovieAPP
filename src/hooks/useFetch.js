@@ -1,34 +1,31 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
+// Hook principal para fetch de dados
 export default function useFetch(fetchFunction, deps = [], params = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   
-  // Referência para cancelar requests
-  const abortControllerRef = useRef(null);
+  // Referências para controle de lifecycle
+  const cancelledRef = useRef(false);
   const isMountedRef = useRef(true);
   
   // Função de retry com backoff exponencial
   const retry = useCallback((attempt = 0) => {
-    const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Max 10s
+    const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Máximo 10 segundos
     setTimeout(() => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !cancelledRef.current) {
         setRetryCount(attempt + 1);
       }
     }, delay);
   }, []);
 
+  // Função principal de execução do fetch
   const executeFetch = useCallback(async (isRetry = false) => {
     try {
-      // Cancela request anterior se existir
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      
-      // Cria novo controller
-      abortControllerRef.current = new AbortController();
+      // Reset do cancelamento
+      cancelledRef.current = false;
       
       if (!isRetry) {
         setLoading(true);
@@ -36,56 +33,50 @@ export default function useFetch(fetchFunction, deps = [], params = {}) {
       }
       setError(null);
 
-      // Executa a função com signal para cancelamento
-      const result = await fetchFunction({
-        ...params,
-        signal: abortControllerRef.current.signal
-      });
+      // Executa a função de fetch
+      const result = await fetchFunction(params);
       
-      // Só atualiza se o componente ainda estiver montado
-      if (isMountedRef.current) {
+      // Só atualiza estado se componente ainda estiver montado
+      if (isMountedRef.current && !cancelledRef.current) {
         setData(result);
         setError(null);
         setRetryCount(0);
       }
     } catch (err) {
-      // Ignora erros de cancelamento
-      if (err.name === 'AbortError') return;
-      
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !cancelledRef.current) {
         const errorMessage = err.message || "Ocorreu um erro ao carregar os dados 😥";
         setError(errorMessage);
         
-        // Auto-retry para erros de rede (máximo 3 tentativas)
-        if (retryCount < 3 && (
-          err.message?.includes('conexão') || 
-          err.message?.includes('Tempo limite') ||
-          err.message?.includes('Sem conexão')
-        )) {
+        // Auto-retry para erros de conectividade (máximo 3 tentativas)
+        const isNetworkError = err.message?.includes('conexão') || 
+                              err.message?.includes('Tempo limite') ||
+                              err.message?.includes('Sem conexão') ||
+                              err.message?.includes('Network') ||
+                              err.message?.includes('fetch');
+        
+        if (retryCount < 3 && isNetworkError) {
           retry(retryCount);
         }
       }
     } finally {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !cancelledRef.current) {
         setLoading(false);
       }
     }
   }, [fetchFunction, params, retryCount, retry]);
 
-  // Função manual de refetch
+  // Função para refetch manual
   const refetch = useCallback(() => {
+    cancelledRef.current = false;
     executeFetch(false);
   }, [executeFetch]);
 
-  // Effect principal
+  // Effect principal - executa fetch quando deps mudam
   useEffect(() => {
     executeFetch(false);
     
-    // Cleanup ao desmontar
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      cancelledRef.current = true;
     };
   }, deps);
 
@@ -96,13 +87,11 @@ export default function useFetch(fetchFunction, deps = [], params = {}) {
     }
   }, [retryCount, executeFetch]);
 
-  // Cleanup no unmount
+  // Cleanup quando componente desmonta
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      cancelledRef.current = true;
     };
   }, []);
 
@@ -115,7 +104,7 @@ export default function useFetch(fetchFunction, deps = [], params = {}) {
   };
 }
 
-// Hook para debounce
+// Hook para debounce - evita muitas chamadas consecutivas
 export function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -132,22 +121,68 @@ export function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-// Hook para detectar conexão de rede
+// Hook simples para status de rede (sem dependências externas)
 export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(true);
+  const [lastCheck, setLastCheck] = useState(Date.now());
 
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+  // Função para testar conectividade
+  const checkConnection = useCallback(async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch('https://httpbin.org/status/200', {
+        method: 'HEAD',
+        cache: 'no-cache',
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      const online = response.ok;
+      setIsOnline(online);
+      setLastCheck(Date.now());
+      return online;
+    } catch (error) {
+      setIsOnline(false);
+      setLastCheck(Date.now());
+      return false;
+    }
   }, []);
 
-  return isOnline;
+  useEffect(() => {
+    // Verifica conectividade a cada 30 segundos
+    const interval = setInterval(checkConnection, 30000);
+    
+    // Verifica imediatamente
+    checkConnection();
+
+    return () => clearInterval(interval);
+  }, [checkConnection]);
+
+  return { isOnline, lastCheck, checkConnection };
+}
+
+// Hook para gerenciar previous value
+export function usePrevious(value) {
+  const ref = useRef();
+  
+  useEffect(() => {
+    ref.current = value;
+  });
+  
+  return ref.current;
+}
+
+// Hook para mounted state
+export function useIsMounted() {
+  const isMountedRef = useRef(true);
+  
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  
+  return useCallback(() => isMountedRef.current, []);
 }
