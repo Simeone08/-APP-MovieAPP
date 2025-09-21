@@ -11,7 +11,7 @@ import {
 import { getPopularMovies } from "../api/tmdb";
 import useFetch from "../hooks/useFetch";
 import MovieCard from "../components/MovieCard";
-//import { LoadingSpinner, ErrorMessage, NetworkStatus, RetryBanner } from "../components/UtilityComponents";
+import { LoadingSpinner, ErrorMessage, NetworkStatus, RetryBanner } from "../components/UtilitiesComponents";
 
 const { width, height } = Dimensions.get('window');
 const HEADER_HEIGHT = 60;
@@ -119,7 +119,7 @@ export default function HomeScreen() {
     return (
       <View style={styles.footerContainer}>
         <View style={styles.footerLoader}>
-          
+          <LoadingSpinner message="Carregando mais filmes..." size="small" />
         </View>
       </View>
     );
@@ -136,9 +136,10 @@ export default function HomeScreen() {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
         <View style={styles.gradientBackground}>
-          
+          <NetworkStatus />
+          <RetryBanner isRetrying={isRetrying} attempt={1} />
           <View style={styles.centerContent}>
-            
+            <LoadingSpinner message="Descobrindo filmes incríveis..." />
           </View>
         </View>
       </View>
@@ -151,7 +152,7 @@ export default function HomeScreen() {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
         <View style={styles.gradientBackground}>
-        
+          <NetworkStatus />
           <View style={styles.centerContent}>
             <ErrorMessage 
               message={error} 
@@ -170,6 +171,8 @@ export default function HomeScreen() {
       
       {/* Background gradient */}
       <View style={styles.gradientBackground}>
+        <NetworkStatus />
+        <RetryBanner isRetrying={isRetrying} attempt={1} />
         
         <FlatList
           ref={flatListRef}

@@ -12,7 +12,7 @@ import {
 import { searchMovies } from "../api/tmdb";
 import { useDebounce } from "../hooks/useFetch";
 import MovieCard from "../components/MovieCard";
-//import { LoadingSpinner, ErrorMessage, EmptyState, NetworkStatus } from "../components/UtilityComponents";
+import { LoadingSpinner, ErrorMessage, EmptyState, NetworkStatus } from "../components/UtilitiesComponents";
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
@@ -107,7 +107,7 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      
+      <NetworkStatus />
       
       {/* Barra de busca */}
       <View style={styles.searchContainer}>
