@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { getWatchedMovies, getWantToWatchMovies } from "../storage/movieStorage";
 import MovieCard from "../components/MovieCard";
-//import { LoadingSpinner, EmptyState } from "../components/UtilityComponents";
+import { LoadingSpinner, EmptyState } from "../components/UtilitiesComponents";
 
 const { width } = Dimensions.get('window');
 
@@ -136,7 +136,7 @@ export default function FavoritesScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        
+        <LoadingSpinner message="Carregando favoritos..." />
       </SafeAreaView>
     );
   }

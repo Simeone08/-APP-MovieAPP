@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { initializeStorage } from './src/storage/movieStorage';
 import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
+import FavoritesScreen from './src/screens/FavoritesScreen';
 
 export default function App() {
 
