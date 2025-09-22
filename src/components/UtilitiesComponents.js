@@ -39,7 +39,7 @@ export const EmptyState = ({
   </View>
 );
 
-// NetworkStatus simplificado - sem hooks complexos
+
 export const NetworkStatus = ({ isOffline = false }) => {
   if (!isOffline) return null;
   
@@ -50,7 +50,7 @@ export const NetworkStatus = ({ isOffline = false }) => {
   );
 };
 
-// RetryBanner simplificado
+
 export const RetryBanner = ({ isRetrying, attempt, maxAttempts = 3 }) => {
   if (!isRetrying) return null;
   
@@ -64,16 +64,16 @@ export const RetryBanner = ({ isRetrying, attempt, maxAttempts = 3 }) => {
   );
 };
 
-// Componente de status de conexão simples
+
 export const SimpleNetworkStatus = ({ 
   children, 
   showOfflineMessage = true,
   offlineComponent = null 
 }) => {
-  // Por simplicidade, assume online. Em produção, você pode usar NetInfo
+  
   const [isOnline, setIsOnline] = React.useState(true);
   
-  // Simulação simples de teste de conectividade
+  
   React.useEffect(() => {
     const testConnection = async () => {
       try {
@@ -87,9 +87,9 @@ export const SimpleNetworkStatus = ({
       }
     };
     
-    // Testa conectividade a cada 30 segundos
+   
     const interval = setInterval(testConnection, 30000);
-    testConnection(); // Teste inicial
+    testConnection();
     
     return () => clearInterval(interval);
   }, []);

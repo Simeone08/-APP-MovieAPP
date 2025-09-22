@@ -42,7 +42,6 @@ export default function ReminderModal({ visible, movie, onClose }) {
     }
   };
 
-  // Função para agendar no calendário nativo (Expo)
   const scheduleWithExpoCalendar = async () => {
     try {
       // Solicita permissão

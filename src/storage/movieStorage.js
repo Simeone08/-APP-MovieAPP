@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const STORAGE_KEY = "movies_status";
-const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 horas
-const MAX_STORAGE_SIZE = 1000; // Máximo de filmes armazenados
+const CACHE_EXPIRY = 24 * 60 * 60 * 1000;
+const MAX_STORAGE_SIZE = 1000;
 const BACKUP_KEY = "movies_backup";
 const SETTINGS_KEY = "app_settings";
 
@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS = {
   notifications: true,
 };
 
-// Validação de dados do filme (melhorada)
+// Validação de dados do filme
 const validateMovieData = (movie) => {
   if (!movie || typeof movie !== 'object') {
     return false;
@@ -70,7 +70,7 @@ const saveSettings = async (settings) => {
   }
 };
 
-// Função para carregar dados do storage com cache (melhorada)
+// Função para carregar dados do storage com cache
 const loadFromStorage = async () => {
   try {
     // Verifica se o cache em memória ainda é válido
