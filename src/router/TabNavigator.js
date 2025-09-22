@@ -2,11 +2,11 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 
-// Importar as telas
 import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
-// Icons (você pode usar react-native-vector-icons ou emojis)
+
+
 const TabIcon = ({ focused, icon, label }) => (
   <View style={styles.tabIconContainer}>
     <Text style={[
@@ -80,7 +80,7 @@ export default function TabNavigator() {
             />
           ),
           tabBarAccessibilityLabel: 'Filmes favoritos',
-          tabBarBadge: null, // Pode adicionar badge com número de favoritos
+          tabBarBadge: null,
         }}
       />
     </Tab.Navigator>

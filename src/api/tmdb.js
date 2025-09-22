@@ -4,7 +4,7 @@ import { TMDB_API_KEY, TMDB_BASE_URL, TMDB_LANG } from "@env";
 // Instância centralizada do axios com interceptors
 const api = axios.create({
   baseURL: TMDB_BASE_URL,
-  timeout: 10000, // 10 segundos de timeout
+  timeout: 10000,
   params: {
     api_key: TMDB_API_KEY,
     language: TMDB_LANG,
