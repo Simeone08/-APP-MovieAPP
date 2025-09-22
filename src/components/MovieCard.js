@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, memo } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from "react-native";
 import { saveMovieStatus, getMovieStatus } from "../storage/movieStorage";
 import { getImageUrl } from "../api/tmdb";
+import MovieDetailModal from "./MovieDetailModal";
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 12;
@@ -12,6 +13,23 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // Validação do prop movie
+  if (!movie || !movie.id) {
+    console.warn('MovieCard: movie prop is invalid', movie);
+    return (
+      <View style={styles.cardContainer}>
+        <View style={styles.card}>
+          <View style={styles.imageContainer}>
+            <View style={styles.loadingOverlay}>
+              <Text style={styles.errorText}>Dados do filme inválidos</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   useEffect(() => {
     const loadStatus = async () => {
@@ -49,11 +67,20 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
     }
   }, [movie, status, saving, onStatusChange]);
 
+  const openModal = useCallback(() => {
+    setModalVisible(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModalVisible(false);
+  }, []);
+
   const imageUrl = getImageUrl(movie.poster_path, 'w500');
   const placeholderUrl = 'https://via.placeholder.com/500x750/2a2a2a/666666?text=🎬';
 
   return (
-    <TouchableOpacity style={styles.cardContainer} activeOpacity={0.9}>
+    <>
+      <TouchableOpacity style={styles.cardContainer} activeOpacity={0.9} onPress={openModal}>
       {/* Card Background with Gradient */}
       <View style={styles.card}>
         
@@ -171,6 +198,21 @@ const MovieCard = memo(({ movie, onStatusChange }) => {
         <View style={styles.glassOverlay} />
       </View>
     </TouchableOpacity>
+
+    {/* Modal de Detalhes */}
+    <MovieDetailModal
+      visible={modalVisible}
+      movie={movie}
+      onClose={closeModal}
+      currentStatus={status}
+      onStatusChange={(movieId, newStatus, previousStatus) => {
+        setStatus(newStatus);
+        if (onStatusChange) {
+          onStatusChange(movieId, newStatus, previousStatus);
+        }
+      }}
+    />
+  </>
   );
 });
 
@@ -225,6 +267,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(42, 42, 42, 0.8)',
     backdropFilter: 'blur(4px)',
+  },
+  
+  errorText: {
+    color: '#fff',
+    fontSize: 12,
+    textAlign: 'center',
+    padding: 8,
   },
   
   ratingBadge: {
@@ -358,7 +407,7 @@ const styles = StyleSheet.create({
   },
   
   buttonIcon: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#fff',
   },
   
